@@ -5,25 +5,27 @@ import os
 from pathlib import Path
 
 class iVideo(object):
-    def __init__(self, videoArray, frameLabel=[], classLabel=""):
+    def __init__(self, videoArray, frameLabel=[], classLabel="", labelMap=None):
         self.vid=videoArray
         if isinstance(self.vid, str): self.vid=skvideo.io.vread(self.vid) #Handeling Paths Directly to save memory
-        self.fCount=len(self.vid)   #Number of Video Frames
+        self.len=len(self.vid)      #Number of Video Frames
         self.index=0                #Current Index. Starts at 0
         self.rollover=False         #tracks frame video rollover
         self.frameLabel=frameLabel  #Label for each frame
         self.classLabel=classLabel  #Label for whole Video
+        self.forward=True           #Used to show Forward and Reverse sequence
+        self.labelMap=labelMap      #Used to map the label chars to passed text before saving to json
 
     def get(self, i):   return self.vid[i]
     def reset(self):    self.rollover=False; self.index=0
-    def next(self):
-        if self.index==self.fCount:
-            self.rollover=True
-            self.index=0
-            return self.vid[-1]
-        else:
+    def nextFrame(self):
+        if self.forward and self.index<self.len:    #Forward playback and index not at last frame
             self.index+=1
             return self.vid[self.index-1]
+        elif self.index>0:                          #reverse Video Playback and index ahead of 0
+            self.index-=1
+            return self.vid[self.index+1]
+
     
     @classmethod        
     def load(cls, path, labelPath=None): #load video using class method:  object=iVideo.load(path)
@@ -34,7 +36,8 @@ class iVideo(object):
                 return cls(vid, label)
             else: return cls(vid)
 
-    def setFrameLabel(self, i, label): #Can be used for labeling a frame at index i
+    def setFrameLabel(self, label, i=None): #Can be used for labeling a frame at index i
+        if i==None: i=self.index-1    
         if len(self.frameLabel)<i+1:
             self.frameLabel+=['None']*(i+1-len(self.frameLabel)) #pad with 'None' labels to preserve index
         self.frameLabel[i]=label
@@ -43,7 +46,7 @@ class iVideo(object):
         labels={"framelabel":self.frameLabel,
                 "classLabel":self.classLabel}
         with open(path, 'w') as f:
-            json.dump(labels, path)
+            json.dump(labels, f)
 
 
 class iVideoDataset(object):
