@@ -31,6 +31,7 @@ class QCanvas(QtWidgets.QLabel):
         QtWidgets.QLabel.__init__(self, parent)
         # self.setScaledContents(False)
         Image.open("no_image.png")
+        self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
 
     def draw(self): self.show() #Standardizing with MplCanvas
 
@@ -118,9 +119,11 @@ class QVidLabeler(QtWidgets.QWidget):
     def keyPressEvent(self, e):
         if self.vid==None: print("No Video Attached Yet!!")
         else:
-            pressed=chr(Qt.Key(e.key()))  #Get the corrosponding character of the pressed key
-            self.vid.setFrameLabel(pressed)                     #Set Frame Label
-            self.showNextFrame()
+            pressed=(Qt.Key(e.key()))  #Get the corrosponding character of the pressed key
+            if pressed<127:
+                pressed=chr(pressed)
+                self.vid.setFrameLabel(pressed)                     #Set Frame Label
+                self.showNextFrame()
 
     def showNextFrame(self):    
         self.canvas.imshow(self.vid.nextFrame()) #Show the next frame
