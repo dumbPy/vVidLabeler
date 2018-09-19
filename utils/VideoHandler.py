@@ -12,7 +12,7 @@ class iVideo(object):
         self.vid=videoArray
         if isinstance(self.vid, str): self.vid=skvideo.io.vread(self.vid) #Handeling Paths Directly to save memory
         self.len=len(self.vid)      #Number of Video Frames
-        self.index=318              #Current Index. Starts at 0
+        self.index=470              #Current Index. Starts at 0
         self.rollover=False         #tracks frame video rollover
         self.frameLabel=frameLabel  #Label for each frame
         self.classLabel=classLabel  #Label for whole Video
@@ -29,16 +29,16 @@ class iVideo(object):
         if self.forward and self.index<self.len:    #Forward playback and index not at last frame
             self.index+=1
             self.rollover=False                     #Flag to represent that we can save the returned frameLabel
-            return checkAndReturn(self.vid[self.index-1])
+            return self.vid[self.index-1]
         elif self.index>0 and self.forward==False:  #reverse Video Playback and index ahead of 0
             self.index-=1
             self.rollover=False
             # print(f"Loop2: {type(self.vid[self.index+1])}")
-            return checkAndReturn(self.vid[self.index+1])
+            return self.vid[self.index+1]
         else:
             self.rollover=True                      #If key is still pressed, ignore the returned frameLabels by checking this flag
             # print(f"Loop3: {type(self.vid[self.index-1])}")
-            return checkAndReturn(self.vid[self.index-1])             #video stuck in last frame and no more frameLabels are saved
+            return self.vid[self.index-1]             #video stuck in last frame and no more frameLabels are saved
     
     @classmethod        
     def load(cls, path, labelFolderPath): #load video using class method:  object=iVideo.load(path)
@@ -105,8 +105,6 @@ def loadVideoWithCV2(path):
     cap = cv2.VideoCapture(path)
     print(path)
     frameCount = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    frameWidth = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    frameHeight = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     buf=[]
     
     fc = 0
@@ -121,7 +119,3 @@ def loadVideoWithCV2(path):
         
     cap.release()
     return np.asarray(buf)
-
-def checkAndReturn(image):
-    print(image)
-    return image

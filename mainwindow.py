@@ -68,15 +68,22 @@ class Ui_MainWindow(object):
         self.attachVideoHandler(videoFolderPath, labelFolderPath)    #Attach VideoDataset before adding iVidLabeler as it asks for video upfront
         self.gridLayout.removeWidget(self.widget1)
         self.widget1.setParent(None)
-        self.widget1 = QVidLabeler(self.centralWidget, self.pushVideoToDisplay)
+        self.widget1 = QVidLabeler(self.centralWidget, self.getNextVideo)
         self.widget1.setObjectName("widget1")
         self.gridLayout.addWidget(self.widget1, 0, 0, 1, 1)
-        
+
+    def changeCanvas(self):
+        self.gridLayout.removeWidget(self.widget1)
+        self.widget1.setParent(None)
+        self.widget1 = QVidLabeler(self.centralWidget, self.getNextVideo)
+        self.widget1.setObjectName("widget1")
+        self.gridLayout.addWidget(self.widget1, 0, 0, 1, 1)
+
 
     def attachVideoHandler(self, videoFolderPath, labelFolderPath):
         self.vids= iVideoDataset(videoFolderPath, labelFolderPath)
 
-    def pushVideoToDisplay(self):
+    def getNextVideo(self):
         return self.vids.getNext()
 
 

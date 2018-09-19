@@ -33,11 +33,12 @@ class QCanvas(QtWidgets.QLabel):
         Image.open("no_image.png")
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
 
-    def draw(self): self.show() #Standardizing with MplCanvas
+    def draw(self):
+        pass #Not required when showing Image in QLabel 
 
     def imshow(self, image):
         self.setPixmap(QtGui.QPixmap.fromImage(toQImage(image)))
-
+        
 
 
 class QVidLabeler(QtWidgets.QWidget):
@@ -125,7 +126,7 @@ class QVidLabeler(QtWidgets.QWidget):
                 self.vid.setFrameLabel(pressed)                     #Set Frame Label
                 self.showNextFrame()
 
-    def showNextFrame(self):    
+    def showNextFrame(self):   
         self.canvas.imshow(self.vid.nextFrame()) #Show the next frame
         self.canvas.draw()                       #Render next frame
         self.show()
