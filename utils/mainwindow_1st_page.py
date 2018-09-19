@@ -7,34 +7,37 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from utils.QCustomWidget import QVidLabeler
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(400, 299)
+        MainWindow.resize(400, 300)
         self.centralWidget = QtWidgets.QWidget(MainWindow)
         self.centralWidget.setObjectName("centralWidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralWidget)
         self.gridLayout.setContentsMargins(11, 11, 11, 11)
         self.gridLayout.setSpacing(6)
         self.gridLayout.setObjectName("gridLayout")
-	    #Adding Custom Widget Here
-        self.widget1 = QVidLabeler(self.centralWidget)
+        self.widget1 = QtWidgets.QWidget(self.centralWidget)
+        self.widget1.setObjectName("widget1")
+        self.gridLayout_2 = QtWidgets.QGridLayout(self.widget1)
+        self.gridLayout_2.setContentsMargins(11, 11, 11, 11)
+        self.gridLayout_2.setSpacing(6)
+        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.button_videoFolder = QtWidgets.QPushButton(self.widget1)
+        self.button_videoFolder.setObjectName("button_videoFolder")
+        self.gridLayout_2.addWidget(self.button_videoFolder, 0, 0, 1, 1)
+        self.button_labelFolder = QtWidgets.QPushButton(self.widget1)
+        self.button_labelFolder.setObjectName("button_labelFolder")
+        self.gridLayout_2.addWidget(self.button_labelFolder, 0, 1, 1, 1)
+        self.button_OK = QtWidgets.QPushButton(self.widget1)
+        self.button_OK.setObjectName("button_OK")
+        self.gridLayout_2.addWidget(self.button_OK, 1, 1, 1, 1)
         self.gridLayout.addWidget(self.widget1, 0, 0, 1, 1)
-
-        """Below 2 lines adds extra widget to handle 2 videos at a time.
-        Cool Feature if labeling only video level classes.
-        You can watch say 4 videos at a time and label them with corrosponding label buttons"""
-        # self.widget2 = QVidLabeler(self.centralWidget)
-        # self.gridLayout.addWidget(self.widget2, 0, 1, 1, 1)
-
         MainWindow.setCentralWidget(self.centralWidget)
         self.menuBar = QtWidgets.QMenuBar(MainWindow)
         self.menuBar.setGeometry(QtCore.QRect(0, 0, 400, 22))
         self.menuBar.setObjectName("menuBar")
-        self.menuVideo_Labeling_Tool_by_Sufiyan = QtWidgets.QMenu(self.menuBar)
-        self.menuVideo_Labeling_Tool_by_Sufiyan.setObjectName("menuVideo_Labeling_Tool_by_Sufiyan")
         MainWindow.setMenuBar(self.menuBar)
         self.mainToolBar = QtWidgets.QToolBar(MainWindow)
         self.mainToolBar.setObjectName("mainToolBar")
@@ -42,10 +45,6 @@ class Ui_MainWindow(object):
         self.statusBar = QtWidgets.QStatusBar(MainWindow)
         self.statusBar.setObjectName("statusBar")
         MainWindow.setStatusBar(self.statusBar)
-        self.toolBar = QtWidgets.QToolBar(MainWindow)
-        self.toolBar.setObjectName("toolBar")
-        MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
-        self.menuBar.addAction(self.menuVideo_Labeling_Tool_by_Sufiyan.menuAction())
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -53,10 +52,9 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-
-        self.menuVideo_Labeling_Tool_by_Sufiyan.setTitle(_translate("MainWindow", "Video Labeling Tool by Sufiyan"))
-        self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))
-
+        self.button_videoFolder.setText(_translate("MainWindow", "Video Folder Path"))
+        self.button_labelFolder.setText(_translate("MainWindow", "Label Folder Path"))
+        self.button_OK.setText(_translate("MainWindow", "OK"))
 
 
 if __name__ == "__main__":
