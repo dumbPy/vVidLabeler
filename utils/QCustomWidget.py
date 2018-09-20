@@ -30,7 +30,6 @@ class QCanvas(QtWidgets.QLabel):
     def __init__(self, parent, w=5, h=4):
         QtWidgets.QLabel.__init__(self, parent)
         # self.setScaledContents(False)
-        Image.open("no_image.png")
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
 
     def draw(self):
@@ -40,6 +39,18 @@ class QCanvas(QtWidgets.QLabel):
         self.setPixmap(QtGui.QPixmap.fromImage(toQImage(image)))
         
 
+class QGraphicsCanvas(QtWidgets.QGraphicsScene):
+    def __init__(self, parent):
+        QtWidgets.QGraphicsScene.__init__(self, parent)
+        self.view=QtWidgets.QGraphicsView(self)
+
+    def imshow(self, image):
+        
+        pixmap=QtGui.QPixmap.fromImage(toQImage(image))
+        self.addPixmap(pixmap)
+        self.view.fitInView(QtCore.QRectF(0.0.image.shape[1],image.shape[0]), Qt.KeepAspectRatio)
+        self.update()
+    def draw(self): pass #Not Required
 
 class QVidLabeler(QtWidgets.QWidget):
     def __init__(self, parent, askForNextVideo, matplotlibBackend=False):
