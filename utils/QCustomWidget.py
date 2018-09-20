@@ -69,15 +69,6 @@ class QVidLabeler(QtWidgets.QWidget):
         self.verticalLayout.setContentsMargins(11, 11, 11, 11)
         self.verticalLayout.setSpacing(6)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.clear_class = QtWidgets.QPushButton(self.widget)
-        self.clear_class.setObjectName("clear_class")
-        self.verticalLayout.addWidget(self.clear_class)
-        self.left_class = QtWidgets.QPushButton(self.widget)
-        self.left_class.setObjectName("left_class")
-        self.verticalLayout.addWidget(self.left_class)
-        self.right_class = QtWidgets.QPushButton(self.widget)
-        self.right_class.setObjectName("right_class")
-        self.verticalLayout.addWidget(self.right_class)
         self.new_class = QtWidgets.QLineEdit(self.widget)
         self.new_class.setText("")
         self.new_class.setAlignment(QtCore.Qt.AlignCenter)
@@ -104,9 +95,6 @@ class QVidLabeler(QtWidgets.QWidget):
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.clear_class.setText(_translate("MainWindow", "clear_class"))
-        self.left_class.setText(_translate("MainWindow", "left_class"))
-        self.right_class.setText(_translate("MainWindow", "right_class"))
         self.new_class.setPlaceholderText(_translate("MainWindow", "New Class"))
         self.replay.setText(_translate("MainWindow", "replay"))
         self.button_next.setText(_translate("MainWindow", "Next Video"))
