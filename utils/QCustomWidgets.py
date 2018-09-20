@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageQt
 import numpy as np
 
-
 class QCanvas(QtWidgets.QLabel):
     def __init__(self, parent):
         QtWidgets.QLabel.__init__(self, parent)
@@ -21,7 +20,7 @@ class QCanvas(QtWidgets.QLabel):
         
 
 class QVidLabeler(QtWidgets.QWidget):
-    def __init__(self, parent, askForNextVideo, matplotlibBackend=False, *args, **kwargs):
+    def __init__(self, parent, askForNextVideo, askForPreviousVideo=None, matplotlibBackend=False, *args, **kwargs):
         QtWidgets.QWidget.__init__(self, parent)
         self.args=args
         self.kwargs=kwargs
@@ -29,8 +28,9 @@ class QVidLabeler(QtWidgets.QWidget):
         self.setupUi()
         self.attachKeys()
         self.setMenu()
-        self.askForNextVideo=askForNextVideo #askForNextVideo is a calllback function
-        self.vid=self.askForNextVideo()  #Call for first video once everything is setup
+        self.askForNextVideo=askForNextVideo         #askForNextVideo is a calllback function
+        self.askForPreviousVideo=askForPreviousVideo #askForPreviousVideo is a callback function
+        self.vid=self.askForNextVideo()              #Call for first video once everything is setup
         self.showNextFrame()
 
     def setupUi(self):
@@ -57,9 +57,9 @@ class QVidLabeler(QtWidgets.QWidget):
         self.verticalLayout.addWidget(self.new_class)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
-        self.button_lastVideo = QtWidgets.QPushButton(self.widget)
-        self.button_lastVideo.setObjectName("button_lastVideo")
-        self.verticalLayout.addWidget(self.button_lastVideo)
+        self.button_previousVideo = QtWidgets.QPushButton(self.widget)
+        self.button_previousVideo.setObjectName("button_previousVideo")
+        self.verticalLayout.addWidget(self.button_previousVideo)
         self.button_next = QtWidgets.QPushButton(self.widget)
         self.button_next.setObjectName("button_next")
         self.verticalLayout.addWidget(self.button_next)
@@ -67,16 +67,21 @@ class QVidLabeler(QtWidgets.QWidget):
         self.retranslateUi()
         
 
-    def saveAndNextVideo(self):
-        self.vid.writeMeta()            #Write metadata like frameLabels, videoClass, key Mappings, to json file
-        self.vid=self.askForNextVideo() #Get next Video
-        self.showNextFrame()            #Get the first frame and show it
+    def saveAndGetVideo(self, which="next"):
+        self.vid.writeMeta()                #Write metadata like frameLabels, videoClass, key Mappings, to json file
+        if which=="previous" and self.askForPreviousVideo!=None: vid=self.askForPreviousVideo()
+        else: vid=self.askForNextVideo()    #Get next Video
+        if (vid.vid[0]!=self.vid.vid[0]).any():self.vid=vid #Avoid Nonetype returned at the end of videoDataset 
+        else: 
+            try: self.kwargs["mainWindow"].statusBar.showMessage("No More Video to Load", 2000)
+            except: print("No mainwindow passed to customWidget")
+        self.showNextFrame()                #Get the first frame and show it
         
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         self.new_class.setPlaceholderText(_translate("MainWindow", "New Class"))
-        self.button_lastVideo.setText(_translate("MainWindow", "Last Video"))
+        self.button_previousVideo.setText(_translate("MainWindow", "Last Video"))
         self.button_next.setText(_translate("MainWindow", "Next Video"))
         self.setFocusPolicy(Qt.StrongFocus)                     #Set Strong Focus to register key press in this class
 
@@ -109,7 +114,6 @@ class QVidLabeler(QtWidgets.QWidget):
 
     def showPreviousFrame(self):
         self.canvas.imshow(self.vid.previousFrame())
-        self.canvas.draw()
         self.show()
         self.setFocus()
 
@@ -129,25 +133,28 @@ class QVidLabeler(QtWidgets.QWidget):
             lastIndex=self.verticalLayout.indexOf(self.button_next)
             self.verticalLayout.insertWidget(lastIndex-3, button)  #Added above QLineEdit
             button.setText(_translate("MainWindow", className))
-            button.clicked.connect(self.vid.setClassLabel(className))
+            print(className)
+            button.clicked.connect(lambda: self.vid.setClassLabel(className))
+            self.vid.setClassLabel(className)
 
     def attachKeys(self):
-        self.button_next.clicked.connect(self.saveAndNextVideo)
+        self.button_next.clicked.connect(lambda: self.saveAndGetVideo("next"))
+        self.button_previousVideo.clicked.connect(lambda: self.saveAndGetVideo("previous"))
         self.new_class.returnPressed.connect(self.addnewClass)
 
     def setMenu(self):
         if "mainWindow" in self.kwargs.keys():
             mainwindow=self.kwargs["mainWindow"]
-            self.regKeys = QtWidgets.QAction('Register Key Strokes', self, checkable=True)
-            self.regKeys.setStatusTip('If Unchecked, Key Strokes will not be Pushed to frameLabels')
-            self.regKeys.setChecked(True)
-            self.regKeys.triggered.connect(self.setKeyRegisterStatus)
+            self.regKeysAction = QtWidgets.QAction('Register Key Strokes', self, checkable=True)
+            self.regKeysAction.setStatusTip('If Unchecked, Key Strokes will not be Pushed to frameLabels')
+            self.regKeysAction.setChecked(True)
+            self.regKeysAction.triggered.connect(self.setKeyRegisterStatus)
             settings=mainwindow.menuBar.addMenu("Settings")
-            settings.addAction(self.regKeys)
+            settings.addAction(self.regKeysAction)
             self.registerKeys=True
 
     def setKeyRegisterStatus(self):
-        self.registerKeys = self.regKeys.isChecked()
+        self.registerKeys = self.regKeysAction.isChecked()
 
 class QFirstPage(QtWidgets.QWidget):
     def __init__(self, parent, callback):

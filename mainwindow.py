@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'mainwindow.ui'
@@ -14,7 +16,6 @@ import matplotlib.pyplot as plt
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
-        MainWindow.setWindowTitle("vVidLabel")
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(400, 299)
         self.centralWidget = QtWidgets.QWidget(MainWindow)
@@ -52,14 +53,14 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "vVidLabeler"))
         # self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))
 
     def changeToVideoLabeler(self, videoFolderPath, labelFolderPath):#Removes QFirstPage and Adds QVidLabeler
         self.attachVideoHandler(videoFolderPath, labelFolderPath)    #Attach VideoDataset before adding iVidLabeler as it asks for video upfront
         self.gridLayout.removeWidget(self.widget1)
         self.widget1.setParent(None)
-        self.widget1 = QVidLabeler(self.centralWidget, self.getNextVideo, mainWindow=self)
+        self.widget1 = QVidLabeler(self.centralWidget, self.vids.getNextVideo, self.vids.getPreviousVideo, mainWindow=self)
         self.widget1.setObjectName("widget1")
         self.gridLayout.addWidget(self.widget1, 0, 0, 1, 1)
 
@@ -74,8 +75,7 @@ class Ui_MainWindow(object):
     def attachVideoHandler(self, videoFolderPath, labelFolderPath):
         self.vids= iVideoDataset(videoFolderPath, labelFolderPath)
 
-    def getNextVideo(self):
-        return self.vids.getNextVideo()
+
 
 
 if __name__ == "__main__":
