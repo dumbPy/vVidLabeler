@@ -8,7 +8,7 @@ class iVideo(object):
     def __init__(self, videoArray, videoName, labelPath, frameLabel=[], classLabel="", config={}):
         self.vid=videoArray
         self.len=len(self.vid)      #Number of Video Frames
-        self.index=470                #Current Index. Starts at 0
+        self.index=0                #Current Index. Starts at 0
         self.rollover=False         #tracks frame video rollover
         self.frameLabel=frameLabel  #Label for each frame
         self.classLabel=classLabel  #Label for whole Video

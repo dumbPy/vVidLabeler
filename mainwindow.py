@@ -64,14 +64,6 @@ class Ui_MainWindow(object):
         self.widget1.setObjectName("widget1")
         self.gridLayout.addWidget(self.widget1, 0, 0, 1, 1)
 
-    def changeCanvas(self):
-        self.gridLayout.removeWidget(self.widget1)
-        self.widget1.setParent(None)
-        self.widget1 = QVidLabeler(self.centralWidget, self.getNextVideo)
-        self.widget1.setObjectName("widget1")
-        self.gridLayout.addWidget(self.widget1, 0, 0, 1, 1)
-
-
     def attachVideoHandler(self, videoFolderPath, labelFolderPath):
         self.vids= iVideoDataset(videoFolderPath, labelFolderPath)
 
