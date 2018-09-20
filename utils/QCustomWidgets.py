@@ -177,10 +177,9 @@ class QFirstPage(QtWidgets.QWidget):
         self.button_videoFolder.setText(_translate("MainWindow", "Video Folder Path"))
         self.button_labelFolder.setText(_translate("MainWindow", "Label Folder Path"))
         self.button_OK.setText(_translate("MainWindow", "OK"))
-        
-        #HardCoding Paths here for testing!!!
-        self.videoFolderPath="/home/sufiyan/temp_data/Videos"
-        self.labelFolderPath="/home/sufiyan/temp_data/Labels"
+        #Paths can be hard coded here for testing
+        self.videoFolderPath=None
+        self.labelFolderPath=None
         self.attachKeys()
 
     def getVideoFolderPath(self): return self.getFolderPath()
