@@ -8,45 +8,27 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageQt
 import numpy as np
 
-class MplCanvas(FigureCanvas):
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig=Figure(figsize=(width,height), dpi=dpi, )
-        fig.tight_layout()
-        fig.subplots_adjust(left=0,right=1,bottom=0,top=1)
-        self.axis=fig.add_subplot(111)
-        self.imshow(Image.open("no_image.png"))
-        FigureCanvas.__init__(self,fig)
-        self.setParent(parent)
-        self.axis.axis('off')
-        self.axis.get_xaxis().set_visible(False)
-        self.axis.get_yaxis().set_visible(False)
-        FigureCanvas.setSizePolicy(self,QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        FigureCanvas.updateGeometry(self)
-
-    def imshow(self, image): self.axis.imshow(image) #Standardize calling canvasObject.imshow() for MplCanvas and Qcanvas
-
-
-def toQImage(frame): return ImageQt.ImageQt(Image.fromarray(frame))
-
 
 class QCanvas(QtWidgets.QLabel):
     def __init__(self, parent):
         QtWidgets.QLabel.__init__(self, parent)
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
 
-    def draw(self):  pass #Not required when showing Image in QLabel 
-
     def imshow(self, image):
         if isinstance(image, np.ndarray):
-            self.setPixmap(QtGui.QPixmap.fromImage(toQImage(image)))
+            Qimage=ImageQt.ImageQt(Image.fromarray(image))
+            self.setPixmap(QtGui.QPixmap.fromImage(Qimage))
         
 
 class QVidLabeler(QtWidgets.QWidget):
-    def __init__(self, parent, askForNextVideo, matplotlibBackend=False):
+    def __init__(self, parent, askForNextVideo, matplotlibBackend=False, *args, **kwargs):
         QtWidgets.QWidget.__init__(self, parent)
+        self.args=args
+        self.kwargs=kwargs
         self.matplotlibBackend=matplotlibBackend
         self.setupUi()
         self.attachKeys()
+        self.setMenu()
         self.askForNextVideo=askForNextVideo #askForNextVideo is a calllback function
         self.vid=self.askForNextVideo()  #Call for first video once everything is setup
         self.showNextFrame()
@@ -59,9 +41,7 @@ class QVidLabeler(QtWidgets.QWidget):
         self.splitter = QtWidgets.QSplitter(self)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
         self.splitter.setObjectName("splitter")
-        #Choose Between 2 Backends. Matplotlib is slow and buggy
-        if self.matplotlibBackend: self.canvas = MplCanvas(self.splitter)
-        else: self.canvas=QCanvas(self.splitter)
+        self.canvas=QCanvas(self.splitter)
         self.canvas.setObjectName("canvas")
         self.widget = QtWidgets.QWidget(self.splitter)
         self.widget.setObjectName("widget")
@@ -77,9 +57,9 @@ class QVidLabeler(QtWidgets.QWidget):
         self.verticalLayout.addWidget(self.new_class)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
-        self.replay = QtWidgets.QPushButton(self.widget)
-        self.replay.setObjectName("replay")
-        self.verticalLayout.addWidget(self.replay)
+        self.button_lastVideo = QtWidgets.QPushButton(self.widget)
+        self.button_lastVideo.setObjectName("button_lastVideo")
+        self.verticalLayout.addWidget(self.button_lastVideo)
         self.button_next = QtWidgets.QPushButton(self.widget)
         self.button_next.setObjectName("button_next")
         self.verticalLayout.addWidget(self.button_next)
@@ -88,7 +68,7 @@ class QVidLabeler(QtWidgets.QWidget):
         
 
     def saveAndNextVideo(self):
-        self.vid.writeLabels()
+        self.vid.writeMeta()            #Write metadata like frameLabels, videoClass, key Mappings, to json file
         self.vid=self.askForNextVideo() #Get next Video
         self.showNextFrame()            #Get the first frame and show it
         
@@ -96,7 +76,7 @@ class QVidLabeler(QtWidgets.QWidget):
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         self.new_class.setPlaceholderText(_translate("MainWindow", "New Class"))
-        self.replay.setText(_translate("MainWindow", "replay"))
+        self.button_lastVideo.setText(_translate("MainWindow", "Last Video"))
         self.button_next.setText(_translate("MainWindow", "Next Video"))
         self.setFocusPolicy(Qt.StrongFocus)                     #Set Strong Focus to register key press in this class
 
@@ -116,15 +96,15 @@ class QVidLabeler(QtWidgets.QWidget):
         if self.vid==None: print("No Video Attached Yet!!")
         else:
             pressed=(Qt.Key(event.key()))  #Get the corrosponding character of the pressed key
-            print(pressed)
+            # print(pressed)               #Used to print the ASCII code of pressed key
             if pressed==16777219: self.showPreviousFrame(); return None
             elif pressed<127:       pressed=chr(pressed)
             elif pressed==16777234: pressed="Left_Arrow"
             elif pressed==16777235: pressed="Up_Arrow"
             elif pressed==16777236: pressed="Right_Arrow"
             elif pressed==16777237: pressed="Down_Arrow"
-            else: return None       #Don't Register any other keys by skipping next statements
-            self.vid.setFrameLabel(pressed) #Set Frame Label
+            else: return None               #Don't Register any other keys by skipping next statements
+            if self.registerKeys: self.vid.setFrameLabel(pressed) #Set Frame Label
             self.showNextFrame()
 
     def showPreviousFrame(self):
@@ -134,21 +114,20 @@ class QVidLabeler(QtWidgets.QWidget):
         self.setFocus()
 
     def showNextFrame(self):   
-        self.canvas.imshow(self.vid.nextFrame()) #Show the next frame
-        self.canvas.draw()                       #Render next frame
+        self.canvas.imshow(self.vid.nextFrame())    #Show the next frame
         self.show()
         self.setFocus()
 
     def addnewClass(self, className=None):
         if className==None: className=self.new_class.text()
-        try: button=getattr(self, className) #Check if self.className exists
+        try: button=getattr(self, className)        #Check if self.<className> exists
         except:
             _translate = QtCore.QCoreApplication.translate
             setattr(self, className, QtWidgets.QPushButton(self.widget))
             button=getattr(self, className)
             button.setObjectName(className)
             lastIndex=self.verticalLayout.indexOf(self.button_next)
-            self.verticalLayout.insertWidget(lastIndex-3, button)       #Added at the end
+            self.verticalLayout.insertWidget(lastIndex-3, button)  #Added above QLineEdit
             button.setText(_translate("MainWindow", className))
             button.clicked.connect(self.vid.setClassLabel(className))
 
@@ -156,6 +135,19 @@ class QVidLabeler(QtWidgets.QWidget):
         self.button_next.clicked.connect(self.saveAndNextVideo)
         self.new_class.returnPressed.connect(self.addnewClass)
 
+    def setMenu(self):
+        if "mainWindow" in self.kwargs.keys():
+            mainwindow=self.kwargs["mainWindow"]
+            self.regKeys = QtWidgets.QAction('Register Key Strokes', self, checkable=True)
+            self.regKeys.setStatusTip('If Unchecked, Key Strokes will not be Pushed to frameLabels')
+            self.regKeys.setChecked(True)
+            self.regKeys.triggered.connect(self.setKeyRegisterStatus)
+            settings=mainwindow.menuBar.addMenu("Settings")
+            settings.addAction(self.regKeys)
+            self.registerKeys=True
+
+    def setKeyRegisterStatus(self):
+        self.registerKeys = self.regKeys.isChecked()
 
 class QFirstPage(QtWidgets.QWidget):
     def __init__(self, parent, callback):

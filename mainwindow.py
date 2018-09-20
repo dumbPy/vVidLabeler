@@ -7,13 +7,14 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from utils.QCustomWidget import QVidLabeler, QFirstPage
+from utils.QCustomWidgets import QVidLabeler, QFirstPage
 from utils.VideoHandler import iVideoDataset
 import matplotlib.pyplot as plt
 
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
+        MainWindow.setWindowTitle("vVidLabel")
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(400, 299)
         self.centralWidget = QtWidgets.QWidget(MainWindow)
@@ -33,8 +34,8 @@ class Ui_MainWindow(object):
         self.menuBar = QtWidgets.QMenuBar(MainWindow)
         self.menuBar.setGeometry(QtCore.QRect(0, 0, 400, 22))
         self.menuBar.setObjectName("menuBar")
-        self.menuVideo_Labeling_Tool_by_Sufiyan = QtWidgets.QMenu(self.menuBar)
-        self.menuVideo_Labeling_Tool_by_Sufiyan.setObjectName("menuVideo_Labeling_Tool_by_Sufiyan")
+
+
         MainWindow.setMenuBar(self.menuBar)
         self.mainToolBar = QtWidgets.QToolBar(MainWindow)
         self.mainToolBar.setObjectName("mainToolBar")
@@ -42,25 +43,23 @@ class Ui_MainWindow(object):
         self.statusBar = QtWidgets.QStatusBar(MainWindow)
         self.statusBar.setObjectName("statusBar")
         MainWindow.setStatusBar(self.statusBar)
-        self.toolBar = QtWidgets.QToolBar(MainWindow)
-        self.toolBar.setObjectName("toolBar")
-        MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
-        self.menuBar.addAction(self.menuVideo_Labeling_Tool_by_Sufiyan.menuAction())
-
+        # self.toolBar = QtWidgets.QToolBar(MainWindow)
+        # self.toolBar.setObjectName("toolBar")
+        # MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
+        
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.menuVideo_Labeling_Tool_by_Sufiyan.setTitle(_translate("MainWindow", "Video Labeling Tool by Sufiyan"))
-        self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))
+        # self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))
 
     def changeToVideoLabeler(self, videoFolderPath, labelFolderPath):#Removes QFirstPage and Adds QVidLabeler
         self.attachVideoHandler(videoFolderPath, labelFolderPath)    #Attach VideoDataset before adding iVidLabeler as it asks for video upfront
         self.gridLayout.removeWidget(self.widget1)
         self.widget1.setParent(None)
-        self.widget1 = QVidLabeler(self.centralWidget, self.getNextVideo)
+        self.widget1 = QVidLabeler(self.centralWidget, self.getNextVideo, mainWindow=self)
         self.widget1.setObjectName("widget1")
         self.gridLayout.addWidget(self.widget1, 0, 0, 1, 1)
 
@@ -76,7 +75,7 @@ class Ui_MainWindow(object):
         self.vids= iVideoDataset(videoFolderPath, labelFolderPath)
 
     def getNextVideo(self):
-        return self.vids.getNext()
+        return self.vids.getNextVideo()
 
 
 if __name__ == "__main__":
