@@ -22,16 +22,8 @@ class Ui_MainWindow(object):
         self.gridLayout.setContentsMargins(11, 11, 11, 11)
         self.gridLayout.setSpacing(6)
         self.gridLayout.setObjectName("gridLayout")
-	    # #Adding Custom Widget Here
-        # self.widget1 = QVidLabeler(self.centralWidget)
-        # self.widget1.setObjectName("widget1")
-        # self.gridLayout.addWidget(self.widget1, 0, 0, 1, 1)
-
-        # """Below 2 lines adds extra widget to handle 2 videos at a time.
-        # Cool Feature if labeling only video level classes.
-        # You can watch say 4 videos at a time and label them with corrosponding label buttons"""
-        # # self.widget2 = QVidLabeler(self.centralWidget)
-        # # self.gridLayout.addWidget(self.widget2, 0, 1, 1, 1)
+        """Adding Custom Widget Here. Can Add multiple widgets to display 
+        and classify multiple Videos at a time"""
 
         self.widget1 = QFirstPage(self.centralWidget, self.changeToVideoLabeler)
         self.widget1.setObjectName("widget1")

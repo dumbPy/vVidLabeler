@@ -6,6 +6,7 @@ from PyQt5.QtCore import Qt
 import os
 import matplotlib.pyplot as plt
 from PIL import Image, ImageQt
+import numpy as np
 
 class MplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
@@ -24,33 +25,21 @@ class MplCanvas(FigureCanvas):
 
     def imshow(self, image): self.axis.imshow(image) #Standardize calling canvasObject.imshow() for MplCanvas and Qcanvas
 
-def toQImage(frame): return QtGui.QImage(frame, frame.shape[0], frame.shape[1], QtGui.QImage.Format_RGB32) #Helper Function
+
+def toQImage(frame): return ImageQt.ImageQt(Image.fromarray(frame))
+
 
 class QCanvas(QtWidgets.QLabel):
-    def __init__(self, parent, w=5, h=4):
+    def __init__(self, parent):
         QtWidgets.QLabel.__init__(self, parent)
-        # self.setScaledContents(False)
         self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
 
-    def draw(self):
-        pass #Not required when showing Image in QLabel 
+    def draw(self):  pass #Not required when showing Image in QLabel 
 
     def imshow(self, image):
-        self.setPixmap(QtGui.QPixmap.fromImage(toQImage(image)))
+        if isinstance(image, np.ndarray):
+            self.setPixmap(QtGui.QPixmap.fromImage(toQImage(image)))
         
-
-class QGraphicsCanvas(QtWidgets.QGraphicsScene):
-    def __init__(self, parent):
-        QtWidgets.QGraphicsScene.__init__(self, parent)
-        self.view=QtWidgets.QGraphicsView(self)
-
-    def imshow(self, image):
-        
-        pixmap=QtGui.QPixmap.fromImage(toQImage(image))
-        self.addPixmap(pixmap)
-        self.view.fitInView(QtCore.QRectF(0.0.image.shape[1],image.shape[0]), Qt.KeepAspectRatio)
-        self.update()
-    def draw(self): pass #Not Required
 
 class QVidLabeler(QtWidgets.QWidget):
     def __init__(self, parent, askForNextVideo, matplotlibBackend=False):
@@ -70,7 +59,7 @@ class QVidLabeler(QtWidgets.QWidget):
         self.splitter = QtWidgets.QSplitter(self)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
         self.splitter.setObjectName("splitter")
-        #Choose Between 2 Backends. Matplotlib is slow
+        #Choose Between 2 Backends. Matplotlib is slow and buggy
         if self.matplotlibBackend: self.canvas = MplCanvas(self.splitter)
         else: self.canvas=QCanvas(self.splitter)
         self.canvas.setObjectName("canvas")
@@ -114,6 +103,7 @@ class QVidLabeler(QtWidgets.QWidget):
 
     def attachKeys(self):
         self.button_next.clicked.connect(self.saveAndNextVideo)
+        
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
@@ -128,14 +118,35 @@ class QVidLabeler(QtWidgets.QWidget):
     def attachVid(self, iVideoObject):
         self.vid=iVideoObject
     
-    def keyPressEvent(self, e):
+    def keyPressEvent(self, event):
+        """Handles the Key Press Event.
+        English Alphanumeric characters have ASCII value upto 127
+                as shown here--> http://ee.hawaii.edu/~tep/EE160/Book/chap4/subsection2.1.1.1.html
+        Left Arrow = 16777234
+        Up Arrow   = 16777235
+        Right Arrow= 16777236
+        Down Arrow = 16777237
+        Escape     = 16777219
+        """
         if self.vid==None: print("No Video Attached Yet!!")
         else:
-            pressed=(Qt.Key(e.key()))  #Get the corrosponding character of the pressed key
-            if pressed<127:
-                pressed=chr(pressed)
-                self.vid.setFrameLabel(pressed)                     #Set Frame Label
-                self.showNextFrame()
+            pressed=(Qt.Key(event.key()))  #Get the corrosponding character of the pressed key
+            print(pressed)
+            if pressed==16777219: self.showPreviousFrame(); return None
+            elif pressed<127:       pressed=chr(pressed)
+            elif pressed==16777234: pressed="Left_Arrow"
+            elif pressed==16777235: pressed="Up_Arrow"
+            elif pressed==16777236: pressed="Right_Arrow"
+            elif pressed==16777237: pressed="Down_Arrow"
+            else: return None       #Don't Register any other keys by skipping next statements
+            self.vid.setFrameLabel(pressed) #Set Frame Label
+            self.showNextFrame()
+
+    def showPreviousFrame(self):
+        self.canvas.imshow(self.vid.previousFrame())
+        self.canvas.draw()
+        self.show()
+        self.setFocus()
 
     def showNextFrame(self):   
         self.canvas.imshow(self.vid.nextFrame()) #Show the next frame

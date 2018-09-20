@@ -11,8 +11,9 @@ class iVideo(object):
     def __init__(self, videoArray, videoName, labelPath, frameLabel=[], classLabel="", labelMap=None):
         self.vid=videoArray
         if isinstance(self.vid, str): self.vid=skvideo.io.vread(self.vid) #Handeling Paths Directly to save memory
+        #self.vid=self.vid[:-1]      #Discarding last array. Apparantly, the last frame of each video was messing things up for Qpixmap
         self.len=len(self.vid)      #Number of Video Frames
-        self.index=470              #Current Index. Starts at 0
+        self.index=470                #Current Index. Starts at 0
         self.rollover=False         #tracks frame video rollover
         self.frameLabel=frameLabel  #Label for each frame
         self.classLabel=classLabel  #Label for whole Video
@@ -25,26 +26,23 @@ class iVideo(object):
     def get(self, i):   return self.vid[i]
     def reset(self):    self.rollover=False; self.index=0
     def nextFrame(self):
-        # print(f"Index: {self.index}")
-        if self.forward and self.index<self.len:    #Forward playback and index not at last frame
+        print(self.index)
+        if  self.index<self.len-1:    #Forward playback and index not at last frame
             self.index+=1
-            self.rollover=False                     #Flag to represent that we can save the returned frameLabel
             return self.vid[self.index-1]
-        elif self.index>0 and self.forward==False:  #reverse Video Playback and index ahead of 0
-            self.index-=1
-            self.rollover=False
-            # print(f"Loop2: {type(self.vid[self.index+1])}")
-            return self.vid[self.index+1]
-        else:
-            self.rollover=True                      #If key is still pressed, ignore the returned frameLabels by checking this flag
-            # print(f"Loop3: {type(self.vid[self.index-1])}")
-            return self.vid[self.index-1]             #video stuck in last frame and no more frameLabels are saved
+        else: return self.vid[self.index]
     
+    def previousFrame(self): #reverse Video Playback
+        if self.index>0:     #index ahead of 0 so we can go backwards
+            self.index-=1
+            return self.vid[self.index+1]
+        else: return self.vid[self.index]
+
     @classmethod        
     def load(cls, path, labelFolderPath): #load video using class method:  object=iVideo.load(path)
-            #vid =skvideo.io.vread(path)  #This returns 500 frames and leads to segmentation fault in my code. known issue with skvideo I read
+            vid =skvideo.io.vread(path)  #This returns 500 frames and leads to segmentation fault in my code. known issue with skvideo I read
             # vid=np.asarray([frame for frame in skvideo.io.vreader(path)]) #vreader returns Generator that gives me 497-498 frames as opposed to faulty vread above
-            vid=loadVideoWithCV2(path)  #This uses cv2 to load video into np array as opposed to skvideo.io above.
+            #vid=loadVideoWithCV2(path)  #This uses cv2 to load video into np array as opposed to skvideo.io above.
             vidName=extract_file_name(path)
             labelPath=os.path.join(labelFolderPath, vidName+".json")
             if os.path.isfile(labelPath):
