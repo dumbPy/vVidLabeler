@@ -100,9 +100,6 @@ class QVidLabeler(QtWidgets.QWidget):
         self.vid.writeLabels()
         self.vid=self.askForNextVideo() #Get next Video
         self.showNextFrame()            #Get the first frame and show it
-
-    def attachKeys(self):
-        self.button_next.clicked.connect(self.saveAndNextVideo)
         
 
     def retranslateUi(self):
@@ -126,7 +123,7 @@ class QVidLabeler(QtWidgets.QWidget):
         Up Arrow   = 16777235
         Right Arrow= 16777236
         Down Arrow = 16777237
-        Escape     = 16777219
+        BackSpace  = 16777219
         """
         if self.vid==None: print("No Video Attached Yet!!")
         else:
@@ -153,6 +150,23 @@ class QVidLabeler(QtWidgets.QWidget):
         self.canvas.draw()                       #Render next frame
         self.show()
         self.setFocus()
+
+    def addnewClass(self, className=None):
+        if className==None: className=self.new_class.text()
+        try: button=getattr(self, className) #Check if self.className exists
+        except:
+            _translate = QtCore.QCoreApplication.translate
+            setattr(self, className, QtWidgets.QPushButton(self.widget))
+            button=getattr(self, className)
+            button.setObjectName(className)
+            lastIndex=self.verticalLayout.indexOf(self.button_next)
+            self.verticalLayout.insertWidget(lastIndex-3, button)       #Added at the end
+            button.setText(_translate("MainWindow", className))
+            button.clicked.connect(self.vid.setClassLabel(className))
+
+    def attachKeys(self):
+        self.button_next.clicked.connect(self.saveAndNextVideo)
+        self.new_class.returnPressed.connect(self.addnewClass)
 
 
 class QFirstPage(QtWidgets.QWidget):
