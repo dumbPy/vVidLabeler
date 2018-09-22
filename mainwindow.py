@@ -11,8 +11,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from utils.QCustomWidgets import QVidLabeler, QFirstPage
 from utils.VideoHandler import iVideoDataset
-import matplotlib.pyplot as plt
-
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):

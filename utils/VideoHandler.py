@@ -1,12 +1,13 @@
 #import skvideo.io
 import imageio #Moving to image io as it supports downloading ffmpeg in windows and linux without admin  permission
+imageio.plugins.ffmpeg.download()
 import numpy as np
 import json
 import os
 
 
 class iVideo(object):
-    def __init__(self, videoArray, videoName, labelPath, frameLabel=[], classLabel="", config={}):
+    def __init__(self, videoArray, videoName, labelPath, frameLabel=[], classLabel="", config={}, *args, **kwargs):
         self.vid=videoArray
         self.len=len(self.vid)      #Number of Video Frames
         self.index=0                #Current Index. Starts at 0
@@ -17,7 +18,7 @@ class iVideo(object):
         self.config=config          #Used to map the label chars to passed text before saving to json
         self.videoName=videoName    #Used for saving Labels
         self.labelPath=labelPath
-    
+        if "description" in kwargs.keys(): self.description=kwargs["description"] #Add description of video
     
     def get(self, i):   return self.vid[i]
     def reset(self):    self.index=0
@@ -45,7 +46,13 @@ class iVideo(object):
     def load(cls, path, labelFolderPath): #load video using class method:  object=iVideo.load(path)
             #vid = skvideo.io.vread(path)  #This returns 500 frames and leads to segmentation fault in my videos. known issue with skvideo I read
             #vid = np.asarray([frame for frame in skvideo.io.vreader(path)]) #vreader returns Generator that gives me 497-498 frames as opposed to faulty vread above
-            vid =np.asarray([frame for frame in  imageio.get_reader(path, "ffmpeg") if isinstance(frame, np.ndarray)]) #this uses imageio rather than skvideo
+            def getValidFrames(generator):
+                while True:
+                    try: frame=generator.get_next_data()
+                    except imageio.core.CannotReadFrameError: break
+                    else: yield frame
+
+            vid =np.asarray([frame for frame in  getValidFrames(imageio.get_reader(path, "ffmpeg"))]) #this uses imageio rather than skvideo
             vidName=extract_file_name(path)
             labelPath=os.path.join(labelFolderPath, vidName+".json")
             if os.path.isfile(labelPath):
