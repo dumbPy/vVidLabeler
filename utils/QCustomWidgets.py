@@ -1,6 +1,4 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 from PIL import Image
 from PyQt5.QtCore import Qt
 import os
@@ -20,11 +18,10 @@ class QCanvas(QtWidgets.QLabel):
         
 
 class QVidLabeler(QtWidgets.QWidget):
-    def __init__(self, parent, askForNextVideo, askForPreviousVideo=None, matplotlibBackend=False, *args, **kwargs):
+    def __init__(self, parent, askForNextVideo, askForPreviousVideo=None, *args, **kwargs):
         QtWidgets.QWidget.__init__(self, parent)
         self.args=args
         self.kwargs=kwargs
-        self.matplotlibBackend=matplotlibBackend
         self.setupUi()
         self.attachKeys()
         self.setMenu()
