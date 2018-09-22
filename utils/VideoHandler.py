@@ -1,4 +1,5 @@
-import skvideo.io
+#import skvideo.io
+import imageio #Moving to image io as it supports downloading ffmpeg in windows and linux without admin  permission
 import numpy as np
 import json
 import os
@@ -43,8 +44,8 @@ class iVideo(object):
     @classmethod        
     def load(cls, path, labelFolderPath): #load video using class method:  object=iVideo.load(path)
             #vid = skvideo.io.vread(path)  #This returns 500 frames and leads to segmentation fault in my videos. known issue with skvideo I read
-            vid = np.asarray([frame for frame in skvideo.io.vreader(path)]) #vreader returns Generator that gives me 497-498 frames as opposed to faulty vread above
-            #vid =np.asarray([frame for frame in  imageio.get_reader(path, "ffmpeg")]) #this uses imageio rather than skvideo
+            #vid = np.asarray([frame for frame in skvideo.io.vreader(path)]) #vreader returns Generator that gives me 497-498 frames as opposed to faulty vread above
+            vid =np.asarray([frame for frame in  imageio.get_reader(path, "ffmpeg") if isinstance(frame, np.ndarray)]) #this uses imageio rather than skvideo
             vidName=extract_file_name(path)
             labelPath=os.path.join(labelFolderPath, vidName+".json")
             if os.path.isfile(labelPath):
