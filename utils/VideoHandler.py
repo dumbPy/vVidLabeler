@@ -7,7 +7,7 @@ import os
 
 
 class iVideo(object):
-    def __init__(self, videoArray, vidName, labelFolderPath, frameLabel=[], classLabel="", config={}, *args, **kwargs):
+    def __init__(self, videoArray, vidName, labelFolderPath, frameLabel=[], classLabel="No Label", config={}, *args, **kwargs):
         self.vid=videoArray
         self.len=len(self.vid)      #Number of Video Frames
         self.index=0                #Current Index. Starts at 0
@@ -65,8 +65,8 @@ class iVideo(object):
                 except: classLabel =""
                 try:    config     =details["config"]
                 except: config     ={}
-                return cls(vid, vidName, labelFolderPath, frameLabels, classLabel, config, labelFolderPath=labelFolderPath)
-            else: return cls(vid, vidName, labelFolderPath, labelFolderPath=labelFolderPath)
+                return cls(vid, vidName, labelFolderPath, frameLabels, classLabel, config)
+            else: return cls(vid, vidName, labelFolderPath)
 
     def setFrameLabel(self, label, i=None): #Can be used for labeling a frame at index i
         try:    
@@ -86,14 +86,18 @@ class iVideo(object):
               "config": self.config}
         with open(path, 'w') as f:
             json.dump(meta, f)
-        with open(os.path.join(self.labelFolderPath, ".config.json"), 'w+') as f: #Read Universal Config File
-            config=json.load(f)
-            try: allVideoClasses=config["allVideoClasses"]    #Get all Video Classes
-            except: allVideoClasses=[]
-            if not (self.classLabel in allVideoClasses):      #If self.classLabel not in all classes, add it
-                allVideoClasses.append(self.classLabel)
-            config["allVideoClasses"]=allVideoClasses
-            json.dump(config, f)
+        
+        config_path=os.path.join(self.labelFolderPath, ".config.json")
+        if os.path.exists(config_path):
+            with open(config_path) as f: #Read Universal Config File
+                config=json.load(f)
+                try: allVideoClasses=config["allVideoClasses"]    #Get all Video Classes
+                except: allVideoClasses=[]
+                if not (self.classLabel in allVideoClasses):      #If self.classLabel not in all classes, add it
+                    allVideoClasses.append(self.classLabel)
+                config["allVideoClasses"]=allVideoClasses
+            with open(config_path, "w") as f:
+                json.dump(config, f)
             
             
     def getConfig(self): return self.config
@@ -141,9 +145,15 @@ class iVideoDataset(object):
         self.len = len(self.vids)
         config_path=os.path.join(self.labelFolderPath, ".config.json") #If there is a .config.json file, load all class names to create buttons
         if os.path.exists(config_path):
-            with open(config_path) as f:
-                self.allVideoClasses=json.load(f)["allVideoClasses"]
-        else: self.allVideoClasses=[]
+            try:
+                with open(config_path) as f:
+                    self.allVideoClasses=json.load(f)["allVideoClasses"]
+            except: self.allVideoClasses=[]
+        else:
+            self.allVideoClasses=[]
+            config={"allVideoClasses":self.allVideoClasses} 
+            with open(os.path.join(self.labelFolderPath, ".config.json"), 'w+') as f: json.dump(config, f) #Dump a blank file
+            
             
 
 
