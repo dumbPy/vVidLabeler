@@ -7,7 +7,7 @@ import os
 
 
 class iVideo(object):
-    def __init__(self, videoArray, videoName, labelPath, frameLabel=[], classLabel="", config={}, *args, **kwargs):
+    def __init__(self, videoArray, vidName, labelFolderPath, frameLabel=[], classLabel="", config={}, *args, **kwargs):
         self.vid=videoArray
         self.len=len(self.vid)      #Number of Video Frames
         self.index=0                #Current Index. Starts at 0
@@ -16,8 +16,9 @@ class iVideo(object):
         self.classLabel=classLabel  #Label for whole Video
         self.forward=True           #Used to show Forward and Reverse sequence
         self.config=config          #Used to map the label chars to passed text before saving to json
-        self.videoName=videoName    #Used for saving Labels
-        self.labelPath=labelPath
+        self.vidName=vidName    #Used for saving Labels
+        self.labelFolderPath=labelFolderPath
+        self.kwargs=kwargs
         if "description" in kwargs.keys(): self.description=kwargs["description"] #Add description of video
     
     def get(self, i):   return self.vid[i]
@@ -64,8 +65,8 @@ class iVideo(object):
                 except: classLabel =""
                 try:    config     =details["config"]
                 except: config     ={}
-                return cls(vid, vidName, labelPath, frameLabels, classLabel, config)
-            else: return cls(vid, vidName, labelPath)
+                return cls(vid, vidName, labelFolderPath, frameLabels, classLabel, config, labelFolderPath=labelFolderPath)
+            else: return cls(vid, vidName, labelFolderPath, labelFolderPath=labelFolderPath)
 
     def setFrameLabel(self, label, i=None): #Can be used for labeling a frame at index i
         try:    
@@ -79,13 +80,22 @@ class iVideo(object):
         self.classLabel=label
 
     def writeMeta(self, path=None):
-        if path==None: path=self.labelPath
+        if path==None: path=os.path.join(self.labelFolderPath, self.vidName+".json")
         meta={"frameLabels":self.frameLabel,
               "classLabel":self.classLabel,
               "config": self.config}
         with open(path, 'w') as f:
             json.dump(meta, f)
-
+        with open(os.path.join(self.labelFolderPath, ".config.json"), 'w+') as f: #Read Universal Config File
+            config=json.load(f)
+            try: allVideoClasses=config["allVideoClasses"]    #Get all Video Classes
+            except: allVideoClasses=[]
+            if not (self.classLabel in allVideoClasses):      #If self.classLabel not in all classes, add it
+                allVideoClasses.append(self.classLabel)
+            config["allVideoClasses"]=allVideoClasses
+            json.dump(config, f)
+            
+            
     def getConfig(self): return self.config
     def writeConfig(self, config):  self.config=config
 
@@ -129,6 +139,12 @@ class iVideoDataset(object):
         self.vids=[video for video in os.listdir(self.videoFolderPath) if os.path.isfile(os.path.join(self.videoFolderPath, video))]
         self.labels=[label for label in os.listdir(self.labelFolderPath) if os.path.isfile(os.path.join(self.labelFolderPath, label))]
         self.len = len(self.vids)
+        config_path=os.path.join(self.labelFolderPath, ".config.json") #If there is a .config.json file, load all class names to create buttons
+        if os.path.exists(config_path):
+            with open(config_path) as f:
+                self.allVideoClasses=json.load(f)["allVideoClasses"]
+        else: self.allVideoClasses=[]
+            
 
 
 

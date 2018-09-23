@@ -118,7 +118,7 @@ class QVidLabeler(QtWidgets.QWidget):
         self.show()
         self.setFocus()
 
-    def addnewClass(self, className=None):
+    def addNewClass(self, className=None):
         if className==None: className=self.new_class.text()
         try: button=getattr(self, className)        #Check if self.<className> exists
         except:
@@ -136,7 +136,7 @@ class QVidLabeler(QtWidgets.QWidget):
     def attachKeys(self):
         self.button_next.clicked.connect(lambda: self.saveAndGetVideo("next"))
         self.button_previousVideo.clicked.connect(lambda: self.saveAndGetVideo("previous"))
-        self.new_class.returnPressed.connect(self.addnewClass)
+        self.new_class.returnPressed.connect(self.addNewClass)
 
     def setMenu(self):
         if "mainWindow" in self.kwargs.keys():
