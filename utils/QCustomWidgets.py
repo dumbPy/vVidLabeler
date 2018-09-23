@@ -13,7 +13,9 @@ class QCanvas(QtWidgets.QLabel):
     def imshow(self, image):
         if isinstance(image, np.ndarray):
             Qimage=ImageQt.ImageQt(Image.fromarray(image))
-            self.setPixmap(QtGui.QPixmap.fromImage(Qimage))
+            h,w=self.height(),self.width()
+            self.pixmap=QtGui.QPixmap.fromImage(Qimage)
+            self.setPixmap(self.pixmap.scaled(w, h, QtCore.Qt.KeepAspectRatio))
         
 
 class QVidLabeler(QtWidgets.QWidget):
@@ -173,9 +175,9 @@ class QFirstPage(QtWidgets.QWidget):
         self.button_videoFolder.setText(_translate("MainWindow", "Video Folder Path"))
         self.button_labelFolder.setText(_translate("MainWindow", "Label Folder Path"))
         self.button_OK.setText(_translate("MainWindow", "OK"))
-        #Paths can be hard coded here for testing
-        self.videoFolderPath=None
-        self.labelFolderPath=None
+        #HardCoding Paths here for testing!!!
+        self.videoFolderPath="/home/sufiyan/temp_data/Videos"
+        self.labelFolderPath="/home/sufiyan/temp_data/Labels"
         self.attachKeys()
 
     def getVideoFolderPath(self): return self.getFolderPath()
