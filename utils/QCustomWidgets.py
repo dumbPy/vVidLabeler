@@ -17,8 +17,9 @@ class QCanvas(QtWidgets.QLabel):
         
 
 class QVidLabeler(QtWidgets.QWidget):
-    def __init__(self, parent, askForNextVideo, askForPreviousVideo=None, *args, **kwargs):
+    def __init__(self, parent, askForNextVideo, askForPreviousVideo=None, mainWindow=None, *args, **kwargs):
         QtWidgets.QWidget.__init__(self, parent)
+        self.mainWindow=mainWindow                  #Pass Mainwindow to print stuff to status bar and set menu bars
         self.args=args
         self.kwargs=kwargs
         self.setupUi()
@@ -68,9 +69,7 @@ class QVidLabeler(QtWidgets.QWidget):
         if which=="previous" and self.askForPreviousVideo!=None: vid=self.askForPreviousVideo()
         else: vid=self.askForNextVideo()    #Get next Video
         if (vid.vid[0]!=self.vid.vid[0]).any():self.vid=vid #Avoid Nonetype returned at the end of videoDataset 
-        else: 
-            try: self.kwargs["mainWindow"].statusBar.showMessage("No More Video to Load", 2000)
-            except: print("No mainwindow passed to customWidget")
+        else: self.printStatus("No More Videos to Load...")
         self.showNextFrame()                #Get the first frame and show it
         
 
@@ -119,7 +118,9 @@ class QVidLabeler(QtWidgets.QWidget):
         self.setFocus()
 
     def addNewClass(self, className=None):
-        if className==None: className=self.new_class.text()
+        if className==None:
+            className=self.new_class.text()
+            self.new_class.setText("")
         try: button=getattr(self, className)        #Check if self.<className> exists
         except:
             _translate = QtCore.QCoreApplication.translate
@@ -129,9 +130,15 @@ class QVidLabeler(QtWidgets.QWidget):
             lastIndex=self.verticalLayout.indexOf(self.button_next)
             self.verticalLayout.insertWidget(lastIndex-3, button)  #Added above QLineEdit
             button.setText(_translate("MainWindow", className))
-            print(className)
             button.clicked.connect(lambda: self.vid.setClassLabel(className))
             self.vid.setClassLabel(className)
+            self.printStatus(f"videoLabel: {className}")
+    
+    def printStatus(self, message):
+        if self.mainWindow:
+            try: self.mainWindow.statusBar.showMessage(message, 2000)
+            except: print("Problem Printing message to statusBar. Make sure it's called statusBar in mainWindow")
+        else: print("No mainWindow passed to QVidLabeler")
 
     def attachKeys(self):
         self.button_next.clicked.connect(lambda: self.saveAndGetVideo("next"))
@@ -139,13 +146,12 @@ class QVidLabeler(QtWidgets.QWidget):
         self.new_class.returnPressed.connect(self.addNewClass)
 
     def setMenu(self):
-        if "mainWindow" in self.kwargs.keys():
-            mainwindow=self.kwargs["mainWindow"]
+        if self.mainWindow:
             self.regKeysAction = QtWidgets.QAction('Register Key Strokes', self, checkable=True)
             self.regKeysAction.setStatusTip('If Unchecked, Key Strokes will not be Pushed to frameLabels')
             self.regKeysAction.setChecked(True)
             self.regKeysAction.triggered.connect(self.setKeyRegisterStatus)
-            settings=mainwindow.menuBar.addMenu("Settings")
+            settings=self.mainWindow.menuBar.addMenu("Settings")
             settings.addAction(self.regKeysAction)
             self.registerKeys=True
 

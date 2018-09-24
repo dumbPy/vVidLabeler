@@ -107,7 +107,7 @@ class iVideoDataset(object):
     def __init__(self, videoFolderPath, labelFolderPath):
         self.videoFolderPath,self.labelFolderPath = videoFolderPath,labelFolderPath
         self.index=0            #Start with 0th video
-        self.updateDetails()    #Separated so that it can be called externally everytime we add new label file
+        self.readDetails()    #Separated so that it can be called externally everytime we add new label file
         self.forward=True       
 
     def getVid(self, i): 
@@ -137,21 +137,25 @@ class iVideoDataset(object):
         else: return self.getVid(self.index)
 
 
-    def reset(self): self.index=0; self.updateDetails()
+    def reset(self): self.index=0; self.readDetails()
 
-    def updateDetails(self):
+    def readDetails(self):
         self.vids=[video for video in os.listdir(self.videoFolderPath) if os.path.isfile(os.path.join(self.videoFolderPath, video))]
         self.labels=[label for label in os.listdir(self.labelFolderPath) if os.path.isfile(os.path.join(self.labelFolderPath, label))]
         self.len = len(self.vids)
         config_path=os.path.join(self.labelFolderPath, ".config.json") #If there is a .config.json file, load all class names to create buttons
         if os.path.exists(config_path):
-            try:
-                with open(config_path) as f:
-                    self.allVideoClasses=json.load(f)["allVideoClasses"]
-            except: self.allVideoClasses=[]
+            with open(config_path) as f:
+                config=json.load(f)
+                try:    self.allVideoClasses=config["allVideoClasses"]
+                except: self.allVideoClasses=[]
+                try:    self.lastIndex=config["lastIndex"]
+                except: self.lastIndex=0
         else:
             self.allVideoClasses=[]
-            config={"allVideoClasses":self.allVideoClasses} 
+            self.lastIndex=0
+            config={"allVideoClasses":self.allVideoClasses,
+                    "lastIndex"      :self.lastIndex} 
             with open(os.path.join(self.labelFolderPath, ".config.json"), 'w+') as f: json.dump(config, f) #Dump a blank file
             
             
