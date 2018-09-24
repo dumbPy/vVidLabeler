@@ -108,11 +108,12 @@ class iVideoDataset(object):
         with open(self.config_path) as f:
             config=json.load(f)
         config["index"]=self.index
+        print(f"Writing Index: {self.index}")
         with open(self.config_path, "w+") as f:
             json.dump(config, f)
 
-    def getNextVideo(self): 
-        if self.index!=self.len:
+    def getNextVideo(self, next=True):  #FirstTime flag is used to load current index while attaching
+        if self.index!=self.len-1 and next:
             self.index+=1
             self.writeIndexToConfig()
         return self.getVid(self.index)

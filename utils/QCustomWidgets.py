@@ -27,7 +27,7 @@ class QVidLabeler(QtWidgets.QWidget):
         self.setMenu()
         self.askForNextVideo=askForNextVideo         #askForNextVideo is a calllback function
         self.askForPreviousVideo=askForPreviousVideo #askForPreviousVideo is a callback function
-        self.vid=self.askForNextVideo()              #Call for first video once everything is setup
+        self.vid=self.askForNextVideo(next=False)    #Call for first video once everything is setup
         self.showNextFrame()
 
     def setupUi(self):
@@ -180,8 +180,8 @@ class QFirstPage(QtWidgets.QWidget):
         self.button_labelFolder.setText(_translate("MainWindow", "Label Folder Path"))
         self.button_OK.setText(_translate("MainWindow", "OK"))
         #HardCoding Paths here for testing!!!
-        self.videoFolderPath=None
-        self.labelFolderPath=None
+        self.videoFolderPath="/home/dumbpy/Desktop/Daimler-temp/Videos"
+        self.labelFolderPath="/home/dumbpy/Desktop/Daimler-temp/Labels"
         self.attachKeys()
 
     def getVideoFolderPath(self): return self.getFolderPath()
