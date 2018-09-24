@@ -108,7 +108,6 @@ class iVideoDataset(object):
         with open(self.config_path) as f:
             config=json.load(f)
         config["index"]=self.index
-        print(f"Writing Index: {self.index}")
         with open(self.config_path, "w+") as f:
             json.dump(config, f)
 
@@ -153,9 +152,6 @@ class iVideoDataset(object):
                     "index"      :self.index} 
             with open(self.config_path, 'w+') as f: json.dump(config, f) #Dump a blank file
             
-            
-
-
 
 def extract_file_name(path):
     tail=os.path.split(path)[-1]

@@ -130,7 +130,7 @@ class QVidLabeler(QtWidgets.QWidget):
             lastIndex=self.verticalLayout.indexOf(self.button_next)
             self.verticalLayout.insertWidget(lastIndex-3, button)  #Added above QLineEdit
             button.setText(_translate("MainWindow", className))
-            button.clicked.connect(lambda: self.vid.setClassLabel(className))
+            button.clicked.connect(lambda: [self.vid.setClassLabel(className), self.printStatus(f"videoLabel: {className}")])
             self.vid.setClassLabel(className)
             self.printStatus(f"videoLabel: {className}")
     
