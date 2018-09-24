@@ -24,24 +24,12 @@ class iVideo(object):
     def get(self, i):   return self.vid[i]
     def reset(self):    self.index=0
     def nextFrame(self):
-        if not self.forward:
-            self.forward=True
-            if self.index==0: self.index+=1
-            else: self.index+=2
-        if  self.index<self.len-1:    #Forward playback and index not at last frame
-            self.index+=1
-            return self.vid[self.index-1]
-        else: return self.vid[self.index]
+        if self.index!=self.len-1:self.index+=1  #Not at last Frame, send next frame, else same frame
+        return self.vid[self.index]
     
     def previousFrame(self): #reverse Video Playback
-        if self.forward:
-            self.forward=False
-            if self.index==self.len-1: self.index-=1
-            else: self.index-=2
-        if self.index>0:     #index ahead of 0 so we can go backwards
-            self.index-=1
-            return self.vid[self.index+1]
-        else: return self.vid[self.index]
+        if self.index!=0: self.index-=1  #If not at 1st frame, return last frame, else same frame
+        return self.vid[self.index]
 
     @classmethod        
     def load(cls, path, labelFolderPath): #load video using class method:  object=iVideo.load(path)
@@ -106,7 +94,7 @@ class iVideo(object):
 class iVideoDataset(object):
     def __init__(self, videoFolderPath, labelFolderPath):
         self.videoFolderPath,self.labelFolderPath = videoFolderPath,labelFolderPath
-        self.index=0            #Start with 0th video
+        self.index=0            #Start with 0th video then update it in readDetails as per .config.json
         self.readDetails()    #Separated so that it can be called externally everytime we add new label file
         self.forward=True       
 
@@ -116,25 +104,24 @@ class iVideoDataset(object):
                 return iVideo.load(path=os.path.join(self.videoFolderPath, self.vids[i]), labelFolderPath=self.labelFolderPath)
             else: return iVideo.load(path=os.path.join(self.videoFolderPath, self.vids[i]), labelFolderPath=self.labelFolderPath)
     
+    def writeIndexToConfig(self):
+        with open(self.config_path) as f:
+            config=json.load(f)
+        config["index"]=self.index
+        with open(self.config_path, "w+") as f:
+            json.dump(config, f)
+
     def getNextVideo(self): 
-        if not self.forward:
-            self.forward=True
-            if self.index==0: self.index+=1
-            else: self.index+=2
-        if  self.index<self.len-1:    #Forward playback and index not at last frame
+        if self.index!=self.len:
             self.index+=1
-            return self.getVid(self.index-1)
-        else: return self.getVid(self.index)
+            self.writeIndexToConfig()
+        return self.getVid(self.index)
 
     def getPreviousVideo(self):
-        if self.forward:
-            self.forward=False
-            if self.index==self.len-1: self.index-=1
-            else: self.index-=2
-        if self.index>0:     #index ahead of 0 so we can go backwards
+        if self.index!=0:
             self.index-=1
-            return self.getVid(self.index+1)
-        else: return self.getVid(self.index)
+            self.writeIndexToConfig()
+        return self.getVid(self.index)
 
 
     def reset(self): self.index=0; self.readDetails()
@@ -143,20 +130,20 @@ class iVideoDataset(object):
         self.vids=[video for video in os.listdir(self.videoFolderPath) if os.path.isfile(os.path.join(self.videoFolderPath, video))]
         self.labels=[label for label in os.listdir(self.labelFolderPath) if os.path.isfile(os.path.join(self.labelFolderPath, label))]
         self.len = len(self.vids)
-        config_path=os.path.join(self.labelFolderPath, ".config.json") #If there is a .config.json file, load all class names to create buttons
-        if os.path.exists(config_path):
-            with open(config_path) as f:
+        self.config_path=os.path.join(self.labelFolderPath, ".config.json") #If there is a .config.json file, load all class names to create buttons
+        if os.path.exists(self.config_path):
+            with open(self.config_path) as f:
                 config=json.load(f)
                 try:    self.allVideoClasses=config["allVideoClasses"]
                 except: self.allVideoClasses=[]
-                try:    self.lastIndex=config["lastIndex"]
-                except: self.lastIndex=0
+                try:    self.index=config["index"]
+                except: self.index=0
         else:
             self.allVideoClasses=[]
-            self.lastIndex=0
+            self.index=0
             config={"allVideoClasses":self.allVideoClasses,
-                    "lastIndex"      :self.lastIndex} 
-            with open(os.path.join(self.labelFolderPath, ".config.json"), 'w+') as f: json.dump(config, f) #Dump a blank file
+                    "index"      :self.index} 
+            with open(self.config_path, 'w+') as f: json.dump(config, f) #Dump a blank file
             
             
 
