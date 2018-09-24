@@ -128,7 +128,14 @@ class iVideoDataset(object):
     def reset(self): self.index=0; self.readDetails()
 
     def readDetails(self):
-        self.vids=[video for video in os.listdir(self.videoFolderPath) if os.path.isfile(os.path.join(self.videoFolderPath, video))]
+        videoFormat=[".mov", ".avi", ".mpg", ".mpeg", ".mp4", ".mkv", ".wmv"]
+        
+        self.vids=[]
+        for (path, _, files) in os.walk(self.videoFolderPath):
+            if len(files)>0:
+                for file in files:
+                    if '.'+file.split('.')[-1] in videoFormat: self.vids.append(os.path.join(path,file))
+         
         self.labels=[label for label in os.listdir(self.labelFolderPath) if os.path.isfile(os.path.join(self.labelFolderPath, label))]
         self.len = len(self.vids)
         self.config_path=os.path.join(self.labelFolderPath, ".config.json") #If there is a .config.json file, load all class names to create buttons
