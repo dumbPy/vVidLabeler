@@ -180,8 +180,8 @@ class QFirstPage(QtWidgets.QWidget):
         self.button_labelFolder.setText(_translate("MainWindow", "Label Folder Path"))
         self.button_OK.setText(_translate("MainWindow", "OK"))
         #HardCoding Paths here for testing!!!
-        self.videoFolderPath="/home/dumbpy/Desktop/Daimler-temp/Videos"
-        self.labelFolderPath="/home/dumbpy/Desktop/Daimler-temp/Labels"
+        self.videoFolderPath="/run/user/1005/gvfs/sftp:host=10.119.2.13,user=sufiyan/home/sufiyan/data/Daimler/1000_vids"
+        self.labelFolderPath="/home/sufiyan/MTP/Labels_All/1000_vids"
         self.attachKeys()
 
     def getVideoFolderPath(self): return self.getFolderPath()
@@ -191,7 +191,7 @@ class QFirstPage(QtWidgets.QWidget):
             "Select Label Directory", os.path.expanduser("~"), QtWidgets.QFileDialog.ShowDirsOnly)
         else: self.videoFolderPath=QtWidgets.QFileDialog.getExistingDirectory( self, 
             "Select Label Directory", os.path.expanduser("~"), QtWidgets.QFileDialog.ShowDirsOnly)
-
+        print(self.labelFolderPath, self.videoFolderPath)
     def OK(self):
         self.callback(self.videoFolderPath, self.labelFolderPath) #Call the Callback function once the work of this page is done
 

@@ -38,7 +38,7 @@ class iVideo(object):
             def getValidFrames(generator):
                 while True:
                     try: frame=generator.get_next_data()
-                    except imageio.core.CannotReadFrameError: break
+                    except (imageio.core.CannotReadFrameError, IndexError) as e: break #Handeling Errors
                     else: yield frame
 
             vid =np.asarray([frame for frame in  getValidFrames(imageio.get_reader(path, "ffmpeg"))]) #this uses imageio rather than skvideo
