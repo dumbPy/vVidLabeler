@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt
 import os
 from PIL import Image, ImageQt
 import numpy as np
+import json
 
 class QCanvas(QtWidgets.QLabel):
     def __init__(self, parent):
@@ -15,14 +16,37 @@ class QCanvas(QtWidgets.QLabel):
             Qimage=ImageQt.ImageQt(Image.fromarray(image))
             self.setPixmap(QtGui.QPixmap.fromImage(Qimage))
         
+class QTags(QtWidgets.QListWidget):
+    def __init__(self, parent, labelFolderPath=None):
+        QtWidgets.QListWidget.__init__(self, parent)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        if labelFolderPath:
+            tags_ref_path=os.path.join(labelFolderPath, 'config', 'tags_ref.json')
+            if os.path.exists(tags_ref_path):
+                with open(tags_ref_path) as f:
+                    self.tags_ref=json.load(f)
+            else: print(f"No Tags Reference File in {os.path.join(labelFolderPath, 'config')}"); self.tags_ref={}
+        else: self.tags_ref={} #Empth Dictionary for tags if no labelFolderPath is provided
+    
+    def set(self, tags_list):
+        if isinstance(tags_list, list):
+            self.clear() #Clear all the tags
+            tags_list.sort()
+            for tag in tags_list:
+                if tag in self.tags_ref.keys(): self.addItem(f'{tag}: {self.tags_ref[tag]}')
+                else:                           self.addItem(tag)
+
+            
+
 
 class QVidLabeler(QtWidgets.QWidget):
-    def __init__(self, parent, askForNextVideo, askForPreviousVideo=None, mainWindow=None, *args, **kwargs):
+    def __init__(self, parent, askForNextVideo, askForPreviousVideo=None, mainWindow=None, labelFolderPath=None, *args, **kwargs):
         QtWidgets.QWidget.__init__(self, parent)
         self.mainWindow=mainWindow                  #Pass Mainwindow to print stuff to status bar and set menu bars
         self.pressed=[]                             #Track the pressed keys at any instance
         self.args=args
         self.kwargs=kwargs
+        self.labelFolderPath=labelFolderPath
         self.setupUi()
         self.attachKeys()
         self.setMenu()
@@ -39,8 +63,13 @@ class QVidLabeler(QtWidgets.QWidget):
         self.splitter = QtWidgets.QSplitter(self)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
         self.splitter.setObjectName("splitter")
+
+        self.tags = QTags(self.splitter, self.labelFolderPath)
+        self.tags.setObjectName("listWidget")
+        
         self.canvas=QCanvas(self.splitter)
         self.canvas.setObjectName("canvas")
+        
         self.widget = QtWidgets.QWidget(self.splitter)
         self.widget.setObjectName("widget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.widget)
@@ -107,6 +136,7 @@ class QVidLabeler(QtWidgets.QWidget):
         else: key=None               #Don't Register any other keys by skipping next statements
         return key
         
+    def updateTags(self): self.tags.set(self.pressed)
 
     def keyPressEvent(self, event):
         key=self.parseKey(event)
@@ -115,6 +145,7 @@ class QVidLabeler(QtWidgets.QWidget):
             key=chr(key)
             if key in self.pressed: self.pressed.remove(key)
             else: self.pressed.append(key)
+            self.updateTags()
         elif type(key)==str: #string keys are navigation keys or space parsed as strings above and shall be used as frame labels 
             if self.registerKeys :self.vid.setFrameLabel([key, self.pressed.copy()]) #Set Frame Label
             # print(key, self.pressed)
@@ -129,6 +160,7 @@ class QVidLabeler(QtWidgets.QWidget):
         self.canvas.imshow(self.vid.nextFrame())    #Show the next frame
         self.show()
         self.setFocus()
+        self.updateTags()
 
     def addNewClass(self, className=None):
         if className==None:

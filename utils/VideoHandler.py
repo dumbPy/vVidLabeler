@@ -138,7 +138,8 @@ class iVideoDataset(object):
          
         self.labels=[label for label in os.listdir(self.labelFolderPath) if os.path.isfile(os.path.join(self.labelFolderPath, label))]
         self.len = len(self.vids)
-        self.config_path=os.path.join(self.labelFolderPath, ".config.json") #If there is a .config.json file, load all class names to create buttons
+        os.makedirs(os.path.join(self.labelFolderPath, 'config'), exist_ok=True)
+        self.config_path=os.path.join(self.labelFolderPath, "config", "config.json") #If there is a .config.json file, load all class names to create buttons
         if os.path.exists(self.config_path):
             with open(self.config_path) as f:
                 config=json.load(f)
