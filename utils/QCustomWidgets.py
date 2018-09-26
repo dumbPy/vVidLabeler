@@ -147,7 +147,8 @@ class QVidLabeler(QtWidgets.QWidget):
             else: self.pressed.append(key)
             self.updateTags()
         elif type(key)==str: #string keys are navigation keys or space parsed as strings above and shall be used as frame labels 
-            if self.registerKeys :self.vid.setFrameLabel([key, self.pressed.copy()]) #Set Frame Label
+            if key=='backSpace': self.showPreviousFrame(); return None
+            elif self.registerKeys :self.vid.setFrameLabel([key, self.pressed.copy()]) #Set Frame Label
             # print(key, self.pressed)
             self.showNextFrame()
 
