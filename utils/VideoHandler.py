@@ -18,21 +18,29 @@ class iVideo(object):
         self.config=config          #Used to map the label chars to passed text before saving to json
         self.vidName=vidName    #Used for saving Labels
         self.labelFolderPath=labelFolderPath
+        self.args=args
         self.kwargs=kwargs
+        self.center=self.len//2     #Index of central frame where event occured
         if "description" in kwargs.keys(): self.description=kwargs["description"] #Add description of video
     
     def get(self, i):   return self.vid[i]
     def reset(self):    self.index=0
     def nextFrame(self):
         if self.index!=self.len-1:self.index+=1  #Not at last Frame, send next frame, else same frame
+        if abs(self.index-self.center)<=5: #for 10 central frames
+            if "mainWindow" in self.kwargs: self.kwargs["mainWindow"].statusBar.showMessage(f"Central Frames: {self.index}", 1000)
+            else: print("central Frame")
         return self.vid[self.index]
     
     def previousFrame(self): #reverse Video Playback
-        if self.index!=0: self.index-=1  #If not at 1st frame, return last frame, else same frame
+        if self.index!=0: self.index-=1  #If not at 1st frame, return previous frame, else same frame
+        if abs(self.index-self.center)<=5: #for 10 central frames
+            if "mainWindow" in self.kwargs: self.kwargs["mainWindow"].statusBar.showMessage(f"Central Frames: {self.index}", 1000)
+            else: print("central Frame")
         return self.vid[self.index]
 
     @classmethod        
-    def load(cls, path, labelFolderPath): #load video using class method:  object=iVideo.load(path)
+    def load(cls, path, labelFolderPath, *args, **kwargs): #load video using class method:  object=iVideo.load(path)
             #vid = skvideo.io.vread(path)  #This returns 500 frames and leads to segmentation fault in my videos. known issue with skvideo I read
             #vid = np.asarray([frame for frame in skvideo.io.vreader(path)]) #vreader returns Generator that gives me 497-498 frames as opposed to faulty vread above
             def getValidFrames(generator):
@@ -53,8 +61,8 @@ class iVideo(object):
                 except: classLabel =""
                 try:    config     =details["config"]
                 except: config     ={}
-                return cls(vid, vidName, labelFolderPath, frameLabels, classLabel, config)
-            else: return cls(vid, vidName, labelFolderPath)
+                return cls(vid, vidName, labelFolderPath, frameLabels, classLabel, config, *args, **kwargs)
+            else: return cls(vid, vidName, labelFolderPath, *args, **kwargs)
 
     def setFrameLabel(self, label, i=None): #Can be used for labeling a frame at index i
         try:    
@@ -76,7 +84,7 @@ class iVideo(object):
         with open(path, 'w') as f:
             json.dump(meta, f)
         
-        config_path=os.path.join(self.labelFolderPath, ".config.json")
+        config_path=os.path.join(self.labelFolderPath, "config/config.json")
         if os.path.exists(config_path):
             with open(config_path) as f: #Read Universal Config File
                 config=json.load(f)
@@ -93,17 +101,19 @@ class iVideo(object):
     def writeConfig(self, config):  self.config=config
 
 class iVideoDataset(object):
-    def __init__(self, videoFolderPath, labelFolderPath):
+    def __init__(self, videoFolderPath, labelFolderPath, *args, **kwargs):
         self.videoFolderPath,self.labelFolderPath = videoFolderPath,labelFolderPath
         self.index=0            #Start with 0th video then update it in readDetails as per .config.json
         self.readDetails()    #Separated so that it can be called externally everytime we add new label file
-        self.forward=True       
+        self.forward=True
+        self.args=args
+        self.kwargs=kwargs      
 
     def getVid(self, i): 
         if i<self.len:
             if extract_file_name(self.vids[i])+".json" in self.labels:
-                return iVideo.load(path=os.path.join(self.videoFolderPath, self.vids[i]), labelFolderPath=self.labelFolderPath)
-            else: return iVideo.load(path=os.path.join(self.videoFolderPath, self.vids[i]), labelFolderPath=self.labelFolderPath)
+                return iVideo.load(path=os.path.join(self.videoFolderPath, self.vids[i]), labelFolderPath=self.labelFolderPath, *self.args, **self.kwargs)
+            else: return iVideo.load(path=os.path.join(self.videoFolderPath, self.vids[i]), labelFolderPath=self.labelFolderPath, *self.args, **self.kwargs)
     
     def writeIndexToConfig(self):
         with open(self.config_path) as f:

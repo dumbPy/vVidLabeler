@@ -66,7 +66,7 @@ class Ui_MainWindow(object):
 
     def attachVideoHandler(self, videoFolderPath, labelFolderPath):
         self.labelFolderPath=labelFolderPath
-        self.vids= iVideoDataset(videoFolderPath, labelFolderPath)
+        self.vids= iVideoDataset(videoFolderPath, labelFolderPath, mainWindow=self)
 
 
 
