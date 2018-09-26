@@ -84,7 +84,7 @@ class QVidLabeler(QtWidgets.QWidget):
     def attachVid(self, iVideoObject):
         self.vid=iVideoObject
     
-    def keyPressEvent(self, event):
+    def parseKey(self, event):
         """Handles the Key Press Event.
         English Alphanumeric characters have ASCII value upto 127
                 as shown here--> http://ee.hawaii.edu/~tep/EE160/Book/chap4/subsection2.1.1.1.html
@@ -94,18 +94,30 @@ class QVidLabeler(QtWidgets.QWidget):
         Down Arrow = 16777237
         BackSpace  = 16777219
         """
-        if self.vid==None: print("No Video Attached Yet!!")
-        else:
-            key=(Qt.Key(event.key()))  #Get the corrosponding character of the pressed key
+        key=event.key()  #Get the corrosponding character of the pressed key
             # print(key)               #Used to print the ASCII code of pressed key
-            if key==16777219: self.showPreviousFrame(); return None
-            elif key<127:       key=chr(key)
-            elif key==16777234: key="Left_Arrow"
-            elif key==16777235: key="Up_Arrow"
-            elif key==16777236: key="Right_Arrow"
-            elif key==16777237: key="Down_Arrow"
-            else: return None               #Don't Register any other keys by skipping next statements
-            if self.registerKeys: self.vid.setFrameLabel(key) #Set Frame Label
+        if key==16777219:   key="backSpace"
+        elif key<127:       
+            if key==32:     key='space'#segrigate space key as navigation keys for frame labels
+            else:           key=key #return numbers for image discription flags and strings frame labels(arrow keys) and backSpace
+        elif key==16777234: key="Left"
+        elif key==16777235: key="Up"
+        elif key==16777236: key="Right"
+        elif key==16777237: key="Down"
+        else: key=None               #Don't Register any other keys by skipping next statements
+        return key
+        
+
+    def keyPressEvent(self, event):
+        key=self.parseKey(event)
+        # print(type(key))
+        if type(key)==int: #If its an alpha numeric key, toggle it in self.pressed, and use self.pressed as tags for each frame labeled with arrow keys
+            key=chr(key)
+            if key in self.pressed: self.pressed.remove(key)
+            else: self.pressed.append(key)
+        elif type(key)==str: #string keys are navigation keys or space parsed as strings above and shall be used as frame labels 
+            if self.registerKeys :self.vid.setFrameLabel([key, self.pressed.copy()]) #Set Frame Label
+            # print(key, self.pressed)
             self.showNextFrame()
 
     def showPreviousFrame(self):
