@@ -32,7 +32,10 @@ where:
 * `"config"` is currently of no use and can be used to save more fine information of the frames in future
   
 ### Screens
-yet to be uploaded
+![First Screen](images/screen1.png)
+
+![Annotation Window](images/screen2.png)
+
 
 ### Bugs
 * Crashes with `segmentation fault` in windows on selecting the paths and doesn't display even a single frame
