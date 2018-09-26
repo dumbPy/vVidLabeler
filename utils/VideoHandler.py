@@ -38,7 +38,7 @@ class iVideo(object):
             def getValidFrames(generator):
                 while True:
                     try: frame=generator.get_next_data()
-                    except (imageio.core.CannotReadFrameError, IndexError) as e: break #Handeling Errors
+                    except (imageio.core.CannotReadFrameError, IndexError) as _: break #Handeling Errors
                     else: yield frame
 
             vid =np.asarray([frame for frame in  getValidFrames(imageio.get_reader(path, "ffmpeg"))]) #this uses imageio rather than skvideo
@@ -62,6 +62,7 @@ class iVideo(object):
             if len(self.frameLabel)<i+1:
                 self.frameLabel+=['None']*(i+1-len(self.frameLabel)) #pad with 'None' labels to preserve index
             self.frameLabel[i]=label
+            # print(self.frameLabel)
         except: print("Problem in SetFrameLabel")
 
     def setClassLabel(self, label):

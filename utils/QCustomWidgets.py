@@ -20,6 +20,7 @@ class QVidLabeler(QtWidgets.QWidget):
     def __init__(self, parent, askForNextVideo, askForPreviousVideo=None, mainWindow=None, *args, **kwargs):
         QtWidgets.QWidget.__init__(self, parent)
         self.mainWindow=mainWindow                  #Pass Mainwindow to print stuff to status bar and set menu bars
+        self.pressed=[]                             #Track the pressed keys at any instance
         self.args=args
         self.kwargs=kwargs
         self.setupUi()
@@ -95,16 +96,16 @@ class QVidLabeler(QtWidgets.QWidget):
         """
         if self.vid==None: print("No Video Attached Yet!!")
         else:
-            pressed=(Qt.Key(event.key()))  #Get the corrosponding character of the pressed key
-            # print(pressed)               #Used to print the ASCII code of pressed key
-            if pressed==16777219: self.showPreviousFrame(); return None
-            elif pressed<127:       pressed=chr(pressed)
-            elif pressed==16777234: pressed="Left_Arrow"
-            elif pressed==16777235: pressed="Up_Arrow"
-            elif pressed==16777236: pressed="Right_Arrow"
-            elif pressed==16777237: pressed="Down_Arrow"
+            key=(Qt.Key(event.key()))  #Get the corrosponding character of the pressed key
+            # print(key)               #Used to print the ASCII code of pressed key
+            if key==16777219: self.showPreviousFrame(); return None
+            elif key<127:       key=chr(key)
+            elif key==16777234: key="Left_Arrow"
+            elif key==16777235: key="Up_Arrow"
+            elif key==16777236: key="Right_Arrow"
+            elif key==16777237: key="Down_Arrow"
             else: return None               #Don't Register any other keys by skipping next statements
-            if self.registerKeys: self.vid.setFrameLabel(pressed) #Set Frame Label
+            if self.registerKeys: self.vid.setFrameLabel(key) #Set Frame Label
             self.showNextFrame()
 
     def showPreviousFrame(self):
@@ -180,8 +181,8 @@ class QFirstPage(QtWidgets.QWidget):
         self.button_labelFolder.setText(_translate("MainWindow", "Label Folder Path"))
         self.button_OK.setText(_translate("MainWindow", "OK"))
         #HardCoding Paths here for testing!!!
-        self.videoFolderPath="/run/user/1005/gvfs/sftp:host=10.119.2.13,user=sufiyan/home/sufiyan/data/Daimler/1000_vids"
-        self.labelFolderPath="/home/sufiyan/MTP/Labels_All/1000_vids"
+        self.videoFolderPath=None
+        self.labelFolderPath=None
         self.attachKeys()
 
     def getVideoFolderPath(self): return self.getFolderPath()
