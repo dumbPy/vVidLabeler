@@ -26,8 +26,8 @@ A Video Labeling Tool for labeling Whole Videos, Video Frames and adding multipl
 }
 ```
 where:
-* `["P", "R"]` is the sorted list of Tags for the $1^{st}$ and $2^{nd}$ *frame*
-* `"Up"` is the frameLabel for $1^{st}$ *frame* registered by pressing Up_Arrow
+* `["P", "R"]` is the sorted list of Tags for the 1st and 2nd *frame*
+* `"Up"` is the frameLabel for 1st *frame* registered by pressing Up_Arrow
 * `"someClass"` is the classLabel for whole video, registered by pressing push buttons on the right, and new classes can be added on the fly
 * `"config"` is currently of no use and can be used to save more fine information of the frames in future
   
